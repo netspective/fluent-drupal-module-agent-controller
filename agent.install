@@ -1,0 +1,91 @@
+<?php
+// $Id$
+
+/**
+* Install the agent module, including it's content (node)
+* type.
+* @file
+*/
+
+/**
+* Implementation of hook_install()
+*/
+function agent_install() {
+	if(!db_table_exists("agent_settings") || !db_table_exists("agent_devices")) {
+		drupal_install_schema('agent');
+		db_query("INSERT INTO {agent_settings} VALUES ('1', '172.16.1.96', '9003')");
+		db_query("INSERT INTO {agent_devices} VALUES (1, 'BP', 0),(2, 'BP001', 1),(3, 'BP002', 1),(4, 'BP003', 1),(5, 'PULSEOX', 0),(6, 'PULSE001', 5),(7, 'PULSE002', 5),(8, 'PULSE003', 5),(9, 'TEMP', 0),(10, 'TEMP001', 9),(11, 'TEMP002', 9),(12, 'TEMP003', 9),(13, 'ECG', 0),(14, 'ECG01', 13)");
+	}	
+}
+
+/**
+* Implementation of hook_uninstall()
+*/
+function agent_uninstall() {
+	drupal_uninstall_schema('agent');
+}
+
+/**
+* Implementation of hook_schema()
+* @return array of Schema API table definitions.
+*/
+function agent_schema() {
+
+	$schema['agent_settings'] = array(
+		'description' => 'Stores the agent Settings.',
+		'fields' => array(
+		  'settings_id' => array(
+			'type' => 'int',
+			'unsigned' => TRUE,
+			'not null' => TRUE,
+			'default' => 0,
+			'description' => 'Setting ID',
+		  ),
+		  'hostname'  => array(
+			'type' => 'varchar',
+			'length' => 128,
+			'not null' => FALSE,
+			'default' => '',
+			'description' => 'The text for this hostname.',
+			),
+		  'port_add' => array(
+			'type' => 'int',
+			'unsigned' => FALSE,
+			'not null' => FALSE,
+			'default' => 0,
+			'description' => 'port_add',
+		  ),
+		),
+		'primary key' => array('settings_id'),
+	  );
+	  
+	  $schema['agent_devices'] = array(
+		'description' => 'Stores the Devices and Category.',
+		'fields' => array(
+		  'device_id' => array(
+			'type' => 'int',
+			'unsigned' => TRUE,
+			'not null' => TRUE,
+			'default' => 0,
+			'description' => 'device_id',
+		  ),
+		  'device_name'  => array(
+			'type' => 'varchar',
+			'length' => 128,
+			'not null' => FALSE,
+			'default' => '',
+			'description' => 'The text for this hostname.',
+			),
+		  'device_category' => array(
+			'type' => 'int',
+			'unsigned' => FALSE,
+			'not null' => FALSE,
+			'default' => 0,
+			'description' => 'port_add',
+		  ),
+		),
+		'primary key' => array('device_id'),
+	  );
+
+    return $schema;
+}

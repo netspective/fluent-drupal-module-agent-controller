@@ -1,0 +1,224 @@
+<?php
+/**
+* Display help and module information
+* @param path which path of the site we're displaying help
+* @param arg array that holds the current path as would be returned from arg() function
+* @return help text for the path
+*/
+function agent_help($path, $arg) {
+  $output = '';  //declare your output variable
+  switch ($path) {
+    case "admin/help#agent":
+      $output = '<p>'.  t("This is agent") .'</p>';
+      break;
+  }
+  return $output;
+} // function agent_help
+
+function agent_perm() {
+  return array('access agent content');
+} // function agent_perm()
+
+
+function agent_menu() {
+
+  $items = array();
+
+  $items['admin/settings/agent'] = array(
+    'title' => t('Agent Controller settings'),
+    'description' => t('Description of your Fluent UI settings page'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('agent_admin'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+   
+   //this is added for this current tutorial.
+  $items['agent/control/%/%/%'] = array(
+    'title' => 'Agent Control',
+    'page callback' => 'agent_agent_device_action',
+	'page arguments' => array(2, 3, 4),
+    'access arguments' => array('access agent content'),
+    'type' => MENU_CALLBACK
+  );
+
+  //this is added for this current tutorial.
+  $items['agent'] = array(
+    'title' => 'Agent Control',
+    'page callback' => 'agent_all',
+    'access arguments' => array('access agent content'),
+    'type' => MENU_NORMAL_ITEM
+  );
+  
+  
+  
+  return $items;
+}
+
+function agent_admin() {
+  $form = array();
+$query = "select hostname, port_add from {agent_settings} where settings_id = 1";
+  $i=0;
+  $query_result = db_query($query);
+  while ($links = db_fetch_object($query_result)) {
+  	$value_arr['host'] = $links->hostname;
+  	$value_arr['port'] = $links->port_add;
+  }
+  
+    $form['agent_hostname'] = array('#type' => 'textfield',
+    '#title' => t('Host name'),
+    '#default_value' => $value_arr['host'],
+    '#maxlength' => 255,
+    '#description' => t('Enter the HOST URL.'),
+    '#required' => TRUE,
+  );
+  
+  $form['agent_port'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Port'),
+    '#default_value' => $value_arr['port'],
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#description' => t("Enter the PORT."),
+    '#required' => TRUE,
+  );
+  
+  $form['#submit'][] = 'agent_admin_submit';
+  return system_settings_form($form);
+}
+
+function agent_admin_submit($form, &$form_state) {
+    $port = $form_state['values']['agent_port'];
+    $hosturl = $form_state['values']['agent_hostname'];
+
+    $exe_query = db_query("UPDATE {agent_settings} SET hostname = '%s', port_add = '%s' WHERE settings_id = %d", $hosturl,$port,1);
+   
+    if ($exe_query !== false) {
+        $msg = 'Updated ';
+        $vars = array('%id'=>1);
+        watchdog('agent_module', $msg, $vars, WATCHDOG_INFO);
+        drupal_set_message(t('Updated port'));
+    } else {
+        $msg = 'Could not Update ';
+        $vars = array();
+        watchdog('agent_module', $msg, $vars, WATCHDOG_ERROR);
+        drupal_set_message(t('Could not Update.'));
+    }
+   
+    $form_state['redirect'] = 'admin/settings/agent';
+}
+
+function agent_block($op='list', $delta=0) {
+  // set up the block 
+  $block = array();
+
+  if ($op == "list") {
+    // Generate listing of blocks from this module, for the admin/block page
+
+    $block[0]["info"] = t('agent');
+  }
+  else if ($op == 'view') {
+
+    // Generate our block content
+
+  }
+
+  return $block;
+}  // end agent_block
+
+function agent_admin_validate($form, &$form_state) {
+  $maxdisp = $form_state['values']['agent_port'];
+  if (!is_numeric($maxdisp)) {
+    form_set_error('agent_port', t('You must enter an integer for Port number.'));
+  }
+  else if ($maxdisp <= 0) {
+    form_set_error('agent_port', t('Enter the correct Port number.'));
+  }
+}
+
+function agent_all() {
+  // content variable that will be returned for display
+  $page_content = '';
+
+  $output = theme('agent_list', 'BP', '2');
+  return $output;
+}
+
+function agent_agent_device_action($device_id,$device,$action) {
+  $variables = array();
+  $variables['device'] = $device;
+  $variables['domain'] = strtolower($device_id);
+  $variables['action'] = $action;
+  $output = theme('agent_device_action', $variables['device'],$variables['domain'],$variables['action']);
+  return $output;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function agent_theme() {
+  return array(
+    'agent_list' => array(
+      'template' => 'tpl/agent_list',
+      'arguments' => array('devices' => NULL, 'id' => NULL),
+    ),
+	'agent_device_action' => array(
+      'template' => 'tpl/agent_device_action',
+      'arguments' => array('device' => NULL, 'domain' => NULL, 'action' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function agent_init() {
+  drupal_add_js(drupal_get_path('module', 'agent') .'/js/jquery-1.6.3.min.js');
+  drupal_add_js(drupal_get_path('module', 'agent') .'/js/jquery.flot.min.js');
+  drupal_add_js(drupal_get_path('module', 'agent') .'/js/cookie.js');
+  drupal_add_css(drupal_get_path('module', 'agent') .'/css/agent.css');
+}
+
+function template_preprocess_agent_list(&$variables) {
+  
+  $block_content = '';
+  $value_arr = array();
+  $variables['settings'] = _agent_get_settings_value();
+  $query = "select root.device_name as root_name, down1.device_name as down1_name from {agent_devices} as root left outer join {agent_devices} as down1 on down1.device_category = root.device_id where root.device_category = 0 order by root_name, down1_name";
+  $i=0;
+  $query_result = db_query($query);
+    while ($links = db_fetch_object($query_result)) {
+	  if(module_exists("agent_present")) { 
+		$value_arr[$i]['name'] = l($links->root_name, 'agent/present/remote-view-real-time/'.$links->root_name);
+		$value_arr[$i]['sub'] = l($links->down1_name, 'agent/present/remote-view-real-time/'.$links->root_name.'/'.$links->down1_name);
+	  } else {
+		$value_arr[$i]['name'] = $links->root_name;
+		$value_arr[$i]['sub'] = $links->down1_name;
+	  }
+	  
+	  $value_arr[$i]['sub_text'] = $links->down1_name;
+	  if($links->root_name!="TEMP") $value_arr[$i]['name_text'] = $links->root_name;
+      else $value_arr[$i]['name_text'] = "TEMPERATURE";
+	  $value_arr[$i++]['link'] = '';
+    }
+	$variables['devices'] = $value_arr;
+}
+
+function template_preprocess_agent_device_action(&$variables) {
+	drupal_add_js('modules/agent/js/'.$variables['domain'].'.js');
+	drupal_add_js('modules/agent/js/websocket.js');
+	$variables['settings'] = _agent_get_settings_value();
+}
+
+
+function _agent_get_settings_value() {
+  $value_arr = array();
+  $query = "select hostname, port_add from {agent_settings} where settings_id = 1";
+  $i=0;
+  $query_result = db_query($query);
+  while ($links = db_fetch_object($query_result)) {
+  	$value_arr['host'] = $links->hostname;
+  	$value_arr['port'] = $links->port_add;
+  }
+  return $value_arr;
+}

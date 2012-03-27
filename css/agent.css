@@ -1,0 +1,5 @@
+.chart_div { float:left;width:570px }
+.summary { float:left; width:160px; font-size:12px; }
+#device-stat h2 { font-size:16px; font-weight:bold }
+#device-stat h3 { font-size:13px; font-weight:bold }
+#stopBt { opacity:0.5 }
