@@ -51,12 +51,8 @@ DEVICE.prototype.chat_message=function(message) {
 DEVICE.prototype.chat_message2=function(message,sender) 
 {
 
-	if(message!="DLIST")
-	{
-	devices=message;
-
-	
-	}
+		if((message=="DLIST") || (message == "dynamiclist")) { return; }
+devices = message;
 
 	device_dynamic = devices;
 	

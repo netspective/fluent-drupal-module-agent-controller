@@ -94,11 +94,8 @@ function chat_message(message) {
 function chat_message2(message,sender) 
 {
 
-	if(message=="DLIST")
-	{
-		return;
+	if((message=="DLIST") || (message == "dynamiclist")) { return; }
 	
-	}
 	var devices=message;
 
 var device_dynamic = "";

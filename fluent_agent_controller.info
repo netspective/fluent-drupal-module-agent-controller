@@ -1,9 +1,9 @@
-name = Agent Control
+name = FluentUI Agent Controller
 description = This is for Description
 core = 6.x
 package = Agent Management
 
 ; Information added by drupal.org packaging script on 2012-03-01
 version = "6.25+1-dev"
-project = "agent"
+project = "fluent_agent"
 datestamp = "1330560723"

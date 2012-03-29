@@ -1,11 +1,4 @@
-
-# CONTENTS OF THIS FILE
-
- * Requirements
- * Optional tasks
- * Installation
- * More Information
-
+# Drupal Fluent Agent Controller Module
 # REQUIREMENTS
 
    - Agent module requires a Drupal 6.x or higher version with database MySQL[Click here](http://www.mysql.com/).
@@ -19,21 +12,21 @@
 
 ## DOWNLOAD MODULE
 
-   - Download the Agent module zip/tar file  from the link [Click here to download](http://example.com/module/agent.zip)
+   - Download the Agent module zip/tar file  from the link [Click here to download](https://github.com/netspective/fluent-drupal-module-agent-controller/zipball/master)
 
    - Extract the zip file with a following commands
   
-      $  wget http://example.com/modules/agent.tar.gz
+      $ tar xf <fluent-drupal-module-agent-controller_name>.zip
 
-      $ tar -zxvf agent.tar.gz
+      $ tar -zxvf <fluent-drupal-module-agent-controller_name>.zip
+
+   - Move the extracted directory to Drupal Module Location as "fluent_agent_controller"
 
 ## INSTALL MODULE
 
    - Login as Admin user and navigate to Administer > Site building > Modules.
 
    - Check the 'Enabled' box next to the module and then click the 'Save Configuration' button at the bottom.
-
-   - UPDATE THE CONFIGURATION SETTINGS
 
    - Navigate to below location:
 
